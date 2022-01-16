@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../models/user.model');
 var jwt = require('jsonwebtoken');
 const Auth = require('../models/auth.model');
 const { findOne } = require('../models/auth.model');
@@ -48,7 +48,7 @@ async function verifyToken(req, res, next) {
   try {
     var auth = await Auth.findOne({ token: token }).exec();
     if (!auth) {
-      return res.status(401).json({ message: 'Unauthorization!!' });
+      return res.status(401).json({ message: 'You need sign in!!' });
     }
     console.log(auth);
   } catch (error) {
@@ -65,8 +65,25 @@ async function isLogin(req, res, next) {
     if (!auth) {
       next();
     } else {
-      return res.status(403).json({ message: "Permission is denied!" });
+      return res.status(403).json({ message: "You have already signin!" });
     }
+  } catch (error) {
+    next(error);
+  }
+
+}
+async function checkIsAdmin(req, res, next) {
+  var token = req.headers.authorization;
+  try {
+    var auth = await Auth.findOne({ token: token }).populate('user').exec();
+    console.log(auth);
+    if (!auth) {
+      return res.status(401).json({ message: 'You need sign in!!' });
+    }
+    if (!auth.user.isAdmin) {
+      return res.status(403).json({ message: "Permission is denied!,You aren't admin!" });
+    } 
+    next();
   } catch (error) {
     next(error);
   }
@@ -74,4 +91,6 @@ async function isLogin(req, res, next) {
 }
 
 
-module.exports = { checkUserExist, verifyToken, isLogin };
+
+
+module.exports = { checkUserExist, verifyToken, isLogin, checkIsAdmin };

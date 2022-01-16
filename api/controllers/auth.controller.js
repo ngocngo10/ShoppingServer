@@ -1,6 +1,6 @@
 const express = require('express');
 const req = require('express/lib/request');
-const User = require('../models/user');
+const User = require('../models/user.model');
 const route = express.Router();
 const middlewares = require('../middlewares/auth.middleware');
 const jwt = require("jsonwebtoken");
@@ -21,8 +21,10 @@ route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req
     password: bcrypt.hashSync(req.body.password, salt),
     email: req.body.email,
     isAdmin: req.body.isAdmin,
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
+    name : {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+    },
     address: {
       city: req.body.city,
       street: req.body.street,
@@ -130,7 +132,7 @@ route.get('/api/auth/logout',middlewares.verifyToken, async function (req, res, 
     console.log(result);
     return res.status(200).send("logout");
   } catch (error) {
-    next(err);
+    next(error);
   }
 
 

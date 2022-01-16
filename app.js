@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
 const authRouter = require('./api/controllers/auth.controller');
+const productRouter = require('./api/controllers/product.controller');
 
 var indexRouter = require('./api/controllers/index');
 var usersRouter = require('./api/controllers/users');
@@ -30,10 +31,12 @@ db.once('open', function () {
 
 app.use('/', indexRouter);
 app.use('/', usersRouter);
+
 app.get('/health_check', (req, res) => {
   res.send('ok');
 })
 app.use('/', authRouter);
+app.use('/', productRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

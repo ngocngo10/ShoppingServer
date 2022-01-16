@@ -18,13 +18,15 @@ const userSchema = new Schema({
     type: Boolean,
     required: true
   },
-  firstName: {
-    type: String,
-    required: true
-  },
-  lastName: {
-    type: String,
-    required: true
+  name: {
+    firstName: {
+      type: String,
+      required: true
+    },
+    lastName: {
+      type: String,
+      required: true
+    }
   },
   address: {
     city: String,
