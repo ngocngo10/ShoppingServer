@@ -45,17 +45,17 @@ async function verifyToken(req, res, next) {
   //   }
   //   return res.status(401).json({ message: "Unauthorization!!" });
   // }
+  var auth;
   try {
-    var auth = await Auth.findOne({ token: token }).exec();
+    auth = await Auth.findOne({ token: token }).populate('user').exec();
     if (!auth) {
       return res.status(401).json({ message: 'You need sign in!!' });
     }
-    console.log(auth);
+    req.userId = auth.user._id;
+    next();
   } catch (error) {
     next(error);
   }
-
-  next();
 }
 
 async function isLogin(req, res, next) {

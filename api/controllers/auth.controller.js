@@ -1,6 +1,7 @@
 const express = require('express');
 const req = require('express/lib/request');
 const User = require('../models/user.model');
+const Cart = require('../models/cart.model');
 const route = express.Router();
 const middlewares = require('../middlewares/auth.middleware');
 const jwt = require("jsonwebtoken");
@@ -21,7 +22,7 @@ route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req
     password: bcrypt.hashSync(req.body.password, salt),
     email: req.body.email,
     isAdmin: req.body.isAdmin,
-    name : {
+    name: {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
     },
@@ -34,7 +35,11 @@ route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req
   }
   try {
     var result = await User.create(user);
-    console.log(result);
+    const cart = {
+      user: result._id,
+      products: []
+    }
+    await Cart.create(cart);
     return res.json({ userName: result.userName });
   } catch (error) {
     next(error);
@@ -72,7 +77,7 @@ route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req
 // })
 
 // ---------them middle xu li testcase login
-route.post('/api/auth/login',middlewares.isLogin, async function (req, res, next) {
+route.post('/api/auth/login', middlewares.isLogin, async function (req, res, next) {
   try {
     var user = await User.findOne({
       userName: req.body.userName
@@ -125,7 +130,7 @@ route.post('/api/auth/login',middlewares.isLogin, async function (req, res, next
 
 });
 
-route.get('/api/auth/logout',middlewares.verifyToken, async function (req, res, next) {
+route.get('/api/auth/logout', middlewares.verifyToken, async function (req, res, next) {
   const accesstoken = req.headers.authorization;
   try {
     var result = await Auth.remove({ token: accesstoken });
