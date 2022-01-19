@@ -12,20 +12,21 @@ const bcrypt = require('bcryptjs');
 const { token } = require('morgan');
 let tokens = [];
 
-route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req, res, next) {
+route.post('/api/auth/signup', [middlewares.checkUserExist, middlewares.checkConfirmPass], async function (req, res, next) {
   const salt = bcrypt.genSaltSync(10);
 
   // ---------them middle xu li testcase signup
 
   const user = {
-    userName: req.body.userName,
-    password: bcrypt.hashSync(req.body.password, salt),
+    name: req.body.name,
     email: req.body.email,
-    isAdmin: req.body.isAdmin,
-    name: {
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-    },
+    password: bcrypt.hashSync(req.body.password, salt),
+    isAdmin: false,
+    isLock: false,
+    // name: {
+    //   firstName: req.body.firstName,
+    //   lastName: req.body.lastName,
+    // },
     address: {
       city: req.body.city,
       street: req.body.street,
@@ -40,7 +41,10 @@ route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req
       products: []
     }
     await Cart.create(cart);
-    return res.json({ userName: result.userName });
+    return res.json({
+      email: result.email,
+      name: result.name
+    });
   } catch (error) {
     next(error);
   }
@@ -77,23 +81,23 @@ route.post('/api/auth/signup', [middlewares.checkUserExist], async function (req
 // })
 
 // ---------them middle xu li testcase login
-route.post('/api/auth/login', middlewares.isLogin, async function (req, res, next) {
+route.post('/api/auth/login', [middlewares.isLogin, middlewares.checkIsLock], async function (req, res, next) {
   try {
     var user = await User.findOne({
-      userName: req.body.userName
+      email: req.body.email,
     });
     if (!user) {
-      return res.json({ message: 'Username or password is incorrect' });
+      return res.json({ message: 'Email or password is incorrect' });
     }
     const camparetion = bcrypt.compareSync(req.body.password, user.password);
     if (!camparetion) {
-      return res.json({ message: 'Username or password is incorrect' });
+      return res.json({ message: 'Email or password is incorrect' });
     }
     var accesstoken = jwt.sign({
       id: user._id,
       isAdmin: user.isAdmin,
-      userName: user.userName,
-      fullName: user.firstName + user.lastName
+      name: user.name,
+      email: user.email
     }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "3600s" });
 
     var auth = {

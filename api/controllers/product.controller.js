@@ -8,7 +8,7 @@ route.get('/api/products', async function (req, res, next) {
   const limit = Number(req.query.limit) || 0;
   const sort = req.query.sort == "desc" ? -1 : 1;
   try {
-    var products = await Product.find({}).limit(limit).sort({ productCode: sort });
+    var products = await Product.find({}).limit(limit).sort({ price: sort });
     console.log('getAllProducts: ' + products);
     return res.json(products);
   } catch (error) {
@@ -37,7 +37,7 @@ route.get('/api/products/category/:category', async function (req, res, next) {
   const limit = Number(req.query.limit) || 0;
   const sort = req.query.sort == "desc" ? -1 : 1;
   try {
-    var products = await Product.find({ category: category }).limit(limit).sort({ productCode: sort }).exec();
+    var products = await Product.find({ category: category }).limit(limit).sort({ price: sort }).exec();
     console.log('getProductsInCategory: ' + products);
     return res.json(products);
   } catch (error) {

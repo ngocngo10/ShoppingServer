@@ -6,19 +6,21 @@ const e = require('express');
 
 async function checkUserExist(req, res, next) {
   try {
+    /*
     let result = await User.findOne({ userName: req.body.userName }).exec();
     if (result) {
       return res.status(400).json({ message: "UserName already existed!!!" });
     }
+    */
 
-    result = await User.findOne({ email: req.body.email }).exec();
+    let result = await User.findOne({ email: req.body.email }).exec();
     if (result) {
       return res.status(400).json({ message: "Email already existed!!!" });
     }
-    result = await User.findOne({ phoneNumber: req.body.phoneNumber }).exec();
-    if (result) {
-      return res.status(400).json({ message: "PhoneNumber already existed!!!" });
-    }
+    // result = await User.findOne({ phoneNumber: req.body.phoneNumber }).exec();
+    // if (result) {
+    //   return res.status(400).json({ message: "PhoneNumber already existed!!!" });
+    // }
     next();
 
   } catch (error) {
@@ -26,6 +28,17 @@ async function checkUserExist(req, res, next) {
   }
 
 }
+ async function checkConfirmPass(req, res, next){
+   try {
+    if (!(req.body.password === req.body.confirmPass)) {
+      return res.json({ message: 'Confirm Password was incorred' });
+    }
+    next();
+     
+   } catch (error) {
+    next(error);
+   }
+ }
 
 async function verifyToken(req, res, next) {
   var token = req.headers.authorization;
@@ -60,7 +73,7 @@ async function verifyToken(req, res, next) {
 
 async function isLogin(req, res, next) {
   try {
-    var user = await User.findOne({ userName: req.body.userName });
+    var user = await User.findOne({ email: req.body.email });
     var auth = await Auth.findOne({ user: user._id });
     if (!auth) {
       next();
@@ -72,6 +85,22 @@ async function isLogin(req, res, next) {
   }
 
 }
+
+async function checkIsLock(req, res, next) {
+  try {
+    var user = await User.findOne({ email: req.body.email });
+    if (!(user.isLock)) {
+      next();
+    } else {
+      return res.json({ message: "Account has been locked" });
+    }
+  } catch (error) {
+    next(error);
+  }
+
+}
+
+
 async function checkIsAdmin(req, res, next) {
   var token = req.headers.authorization;
   try {
@@ -93,4 +122,4 @@ async function checkIsAdmin(req, res, next) {
 
 
 
-module.exports = { checkUserExist, verifyToken, isLogin, checkIsAdmin };
+module.exports = { checkUserExist, verifyToken, isLogin, checkIsAdmin, checkConfirmPass ,checkIsLock};
