@@ -3,42 +3,33 @@ const route = express.Router();
 const User = require('../models/user.model');
 const middlewares = require('../middlewares/auth.middleware');
 
-route.post('/api/auth/signup', [middlewares.checkUserExist, middlewares.checkConfirmPass], async function (req, res, next) {
-  const salt = bcrypt.genSaltSync(10);
-
-  // ---------them middle xu li testcase signup
-
-  const user = {
-    name: req.body.name,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, salt),
-    isAdmin: false,
-    isLock: false,
-    // name: {
-    //   firstName: req.body.firstName,
-    //   lastName: req.body.lastName,
-    // },
-    address: {
-      city: req.body.city,
-      street: req.body.street,
-      number: req.body.number
-    },
-    phoneNumber: req.body.phoneNumber
-  }
-  try {
-    var result = await User.create(user);
-    const cart = {
-      user: result._id,
-      products: []
-    }
-    await Cart.create(cart);
+route.patch('/api/admin/lockuser/:id', [middlewares.checkIsAdmin], async function (req, res, next) {
+  if (typeof req.body == 'undefined' || req.params.id === null) {
     return res.json({
-      email: result.email,
-      name: result.name
+      status: "Error",
+      message: "Something went wrong! check your sent data"
     });
+  }
+  
+  try {
+    var result = await User.updateOne({
+      _id: req.params.id
+    },
+      {
+        isLock: req.body.isLock
+      },
+    )
+    console.log('User have been locked' + result);
+    if(req.body.isAdmin){
+      return res.json({message: "User have been locked"});
+    }
+    return res.json({message: "User have been unlocked"});
   } catch (error) {
+    console.log(error);
     next(error);
   }
+
+ 
 
 })
 module.exports = route;
