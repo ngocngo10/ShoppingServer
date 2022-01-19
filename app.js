@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
+var cors = require('cors');
 const authRouter = require('./api/controllers/auth.controller');
 const productRouter = require('./api/controllers/product.controller');
 const cartRouter = require('./api/controllers/cart.controller');
@@ -13,6 +14,10 @@ var indexRouter = require('./api/controllers/index');
 var usersRouter = require('./api/controllers/users');
 
 var app = express();
+var corsOptions = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -30,7 +35,7 @@ db.once('open', function () {
   console.log("Kết nối thành công !");
 });
 
-
+app.use(cors(corsOptions));
 app.use('/', indexRouter);
 app.use('/', usersRouter);
 
