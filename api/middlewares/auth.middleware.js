@@ -15,7 +15,7 @@ async function checkUserExist(req, res, next) {
 
     let result = await User.findOne({ email: req.body.email }).exec();
     if (result) {
-      return res.status(400).json({ message: "Email already existed!!!" });
+      return res.status(400).json({ message: 'User already exists' });
     }
     // result = await User.findOne({ phoneNumber: req.body.phoneNumber }).exec();
     // if (result) {
@@ -28,9 +28,10 @@ async function checkUserExist(req, res, next) {
   }
 
 }
+/*
  async function checkConfirmPass(req, res, next){
    try {
-    if (!(req.body.password === req.body.confirmPass)) {
+    if (!(req.body.password === req.body.confirmPassword)) {
       return res.json({ message: 'Confirm Password was incorred' });
     }
     next();
@@ -40,35 +41,32 @@ async function checkUserExist(req, res, next) {
    }
  }
 
+ */
+
 async function verifyToken(req, res, next) {
-  var token = req.headers.authorization;
-  //token ko co
-  // if (!token) {
-  //   return res.status(401).json({ message: "Unauthorization!!" });
-  // }
-  // //token bi sai or het han
-  // try {
-  //   //so sanh token gui len 
-  //   var decoded = jwt.verify(token, 'shhhhh');
-  //   console.log(decoded);
-  // } catch (err) {
-  //   console.log(err);
-  //   if (err.message == 'jwt expired') {
-  //     return res.status(401).json({message: 'Please login again!'})
-  //   }
-  //   return res.status(401).json({ message: "Unauthorization!!" });
-  // }
-  var auth;
-  try {
-    auth = await Auth.findOne({ token: token }).populate('user').exec();
-    if (!auth) {
-      return res.status(401).json({ message: 'You need sign in!!' });
+  var token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      if (!token) {
+        res.status(401).json({message: 'Not authorized, no token'});
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      req.user = await User.findById(decoded.id).select('-password');
+
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({message: 'Not authorized, token failed'});
     }
-    req.userId = auth.user._id;
-    next();
-  } catch (error) {
-    next(error);
   }
+
+ 
 }
 
 async function isLogin(req, res, next) {
@@ -88,11 +86,15 @@ async function isLogin(req, res, next) {
 
 async function checkIsLock(req, res, next) {
   try {
-    var user = await User.findOne({ email: req.body.email });
-    if (!(user.isLock)) {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(401).json({ message: 'Please enter password or email ' });
+    }
+    const user = await User.findOne({ email: email });
+    if (!user.isLock) {
       next();
     } else {
-      return res.json({ message: "Account has been locked" });
+      return res.status(401).json({ message: "Account has been locked" });
     }
   } catch (error) {
     next(error);
@@ -102,19 +104,10 @@ async function checkIsLock(req, res, next) {
 
 
 async function checkIsAdmin(req, res, next) {
-  var token = req.headers.authorization;
-  try {
-    var auth = await Auth.findOne({ token: token }).populate('user').exec();
-    console.log(auth);
-    if (!auth) {
-      return res.status(401).json({ message: 'You need sign in!!' });
-    }
-    if (!auth.user.isAdmin) {
-      return res.status(403).json({ message: "Permission is denied!,You aren't admin!" });
-    } 
+  if (req.user && req.user.isAdmin) {
     next();
-  } catch (error) {
-    next(error);
+  } else {
+    res.status(401).json({ message: 'Not authorized as an admin' });
   }
 
 }
@@ -122,4 +115,4 @@ async function checkIsAdmin(req, res, next) {
 
 
 
-module.exports = { checkUserExist, verifyToken, isLogin, checkIsAdmin, checkConfirmPass ,checkIsLock};
+module.exports = { checkUserExist, verifyToken, isLogin, checkIsAdmin, checkIsLock };

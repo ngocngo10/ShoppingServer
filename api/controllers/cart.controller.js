@@ -61,7 +61,7 @@ route.get('/api/carts/cart', middlewares.verifyToken, async function (req, res, 
 
 
 //add new product to Cart
-route.post('/api/carts/addproduct', middlewares.verifyToken, async function (req, res, next) {
+route.post('/api/carts', middlewares.verifyToken, async function (req, res, next) {
   const token = req.headers.authorization;
   try {
     var auth = await Auth.findOne({ token: token }).populate('user').exec();

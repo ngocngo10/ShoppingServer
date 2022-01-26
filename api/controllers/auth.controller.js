@@ -6,49 +6,40 @@ const route = express.Router();
 const middlewares = require('../middlewares/auth.middleware');
 const jwt = require("jsonwebtoken");
 const Auth = require('../models/auth.model');
+const { generateToken } = require('../utils/generateToken');
 require('dotenv').config();
 // ma hoa mat khau
 const bcrypt = require('bcryptjs');
 const { token } = require('morgan');
 let tokens = [];
 
-route.post('/api/auth/signup', [middlewares.checkUserExist, middlewares.checkConfirmPass], async function (req, res, next) {
+route.post('/api/auth/signup', async function (req, res, next) {
   const salt = bcrypt.genSaltSync(10);
+  const { name, email, password } = req.body
 
-  // ---------them middle xu li testcase signup
+  const userExists = await User.findOne({ email })
 
-  const user = {
-    name: req.body.name,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, salt),
-    isAdmin: false,
-    isLock: false,
-    // name: {
-    //   firstName: req.body.firstName,
-    //   lastName: req.body.lastName,
-    // },
-    address: {
-      city: req.body.city,
-      street: req.body.street,
-      number: req.body.number
-    },
-    phoneNumber: req.body.phoneNumber
-  }
-  try {
-    var result = await User.create(user);
-    const cart = {
-      user: result._id,
-      products: []
-    }
-    await Cart.create(cart);
-    return res.json({
-      email: result.email,
-      name: result.name
-    });
-  } catch (error) {
-    next(error);
+  if (userExists) {
+    res.status(400).json({ message: 'User already exists' });
   }
 
+  const user = await User.create({
+    name,
+    email,
+    password: bcrypt.hashSync(password, salt),
+  })
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user._id),
+    })
+  } else {
+    res.status(400).json({ message: 'Invalid user data' });
+  }
 })
 
 // route.post('/api/auth/refreshToken', (req, res) => {
@@ -81,38 +72,28 @@ route.post('/api/auth/signup', [middlewares.checkUserExist, middlewares.checkCon
 // })
 
 // ---------them middle xu li testcase login
-route.post('/api/auth/login', [middlewares.isLogin, middlewares.checkIsLock], async function (req, res, next) {
+route.post('/api/auth/login', [middlewares.checkIsLock], async function (req, res, next) {
   try {
     var user = await User.findOne({
       email: req.body.email,
     });
     if (!user) {
-      return res.json({ message: 'Email or password is incorrect' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
     const camparetion = bcrypt.compareSync(req.body.password, user.password);
     if (!camparetion) {
-      return res.json({ message: 'Email or password is incorrect' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
-    var accesstoken = jwt.sign({
-      id: user._id,
-      isAdmin: user.isAdmin,
+
+    // var result = await Auth.create(auth);
+    // console.log("Author: " + result);
+    return res.json({
+      _id: user._id,
       name: user.name,
-      email: user.email
-    }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "3600s" });
-
-    var auth = {
-      user: user._id,
-      token: accesstoken,
-      expires: new Date(Date.now() + 3600 * 1000)
-
-    }
-
-    try {
-      var result = await Auth.create(auth);
-      console.log("Author: " + result);
-    } catch (error) {
-      next(err);
-    }
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user._id),
+    });
 
     // const refreshToken = jwt.sign({
     //   id: user._id,
@@ -120,17 +101,16 @@ route.post('/api/auth/login', [middlewares.isLogin, middlewares.checkIsLock], as
     //   userName: user.userName,
     //   fullName: user.firstName + user.lastName
     // }, process.env.REFRESH_TOKEN_SECRET);
-
+    /*
     tokens.push(accesstoken);
     console.log('TokesArray: ' + tokens);
-    return res.json({
-      accesstoken: accesstoken,
-      // refreshToken
-    });
+    */
+
   } catch (error) {
     console.log(error);
     next(error);
   }
+
 
 });
 

@@ -8,27 +8,23 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   password: {
     type: String,
     required: true
   },
-
   isAdmin: {
     type: Boolean,
-    required: true
+    required: true,
+    default: false
   },
-  // name: {
-  //   firstName: {
-  //     type: String,
-  //     required: true
-  //   },
-  //   lastName: {
-  //     type: String,
-  //     required: true
-  //   }
-  // },
+
+  isLock: {
+    type: Boolean,
+    default: false,
+  },
   address: {
     city: String,
     street: String,
@@ -36,13 +32,11 @@ const userSchema = new Schema({
   },
   phoneNumber: {
     type: String
-  },
-  isLock: {
-    type: Boolean,
-    required: true
   }
-
-});
+},
+  {
+    timestamps: true
+  });
 
 const User = mongoose.model("User", userSchema);
 module.exports = mongoose.model.User || mongoose.model("User", userSchema);

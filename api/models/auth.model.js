@@ -1,15 +1,19 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+// const mongoose = require('mongoose');
+// const Schema = mongoose.Schema;
 
-const authSchema = new Schema({
-  user: {
-    type: Schema.Types.ObjectId, ref: 'User'
-  },
-  token: String,
-  expires: Date
-});
+// const authSchema = new Schema(
+//   {
+//     user: {
+//       type: Schema.Types.ObjectId, ref: 'User'
+//     },
+//     token: String,
+//     expires: Date
+//   },
+//   {
+//     timestamps: true,
+//   });
 
-var Auth = mongoose.model('Auth', authSchema);
+// var Auth = mongoose.model('Auth', authSchema);
 
-module.exports = Auth;
+// module.exports = Auth;
 
