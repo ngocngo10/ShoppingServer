@@ -8,17 +8,17 @@ const orderSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    products: [
+    orderItems: [
       {
+        name: { type: String, required: true },
+        qty: { type: Number, required: true },
+        image: { type: String, required: true },
+        price: { type: Number, required: true },
         product: {
-          type: Schema.Types.ObjectId,
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
           ref: 'Product',
-          required: true
         },
-        quantity: {
-          type: Number,
-          required: true
-        }
       }
     ],
     shippingAddress: {
@@ -52,6 +52,11 @@ const orderSchema = mongoose.Schema(
       required: true,
       default: 0.0,
     },
+    isAccept: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     isPaid: {
       type: Boolean,
       required: true,
@@ -74,5 +79,5 @@ const orderSchema = mongoose.Schema(
   }
 )
 
-const Order = mongoose.model('Order', orderSchema)
-module.exports = mongoose.model.Order || mongoose.model("Order", userSchema);
+const Order = mongoose.model('Order', orderSchema);
+module.exports = Order;

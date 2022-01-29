@@ -9,6 +9,7 @@ const authRouter = require('./api/controllers/auth.controller');
 const productRouter = require('./api/controllers/product.controller');
 const cartRouter = require('./api/controllers/cart.controller');
 const userRouter = require('./api/controllers/user.controller');
+const orderRouter = require('./api/controllers/order.controller');
 
 var indexRouter = require('./api/controllers/index');
 var usersRouter = require('./api/controllers/users');
@@ -46,6 +47,7 @@ app.use('/', authRouter);
 app.use('/', productRouter);
 app.use('/', cartRouter);
 app.use('/', userRouter);
+app.use('/', orderRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
