@@ -72,18 +72,28 @@ route.post('/api/auth/signup', async function (req, res, next) {
 // })
 
 // ---------them middle xu li testcase login
-route.post('/api/auth/login', [middlewares.checkIsLock], async function (req, res, next) {
+route.post('/api/auth/login', async function (req, res, next) {
   try {
-    var user = await User.findOne({
-      email: req.body.email,
-    });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(401).json({ message: 'Please enter password or email ' });
+    }
+    const user = await User.findOne({ email: email });
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
+
     const camparetion = bcrypt.compareSync(req.body.password, user.password);
     if (!camparetion) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
+
+    if (user.isLock) {
+      return res.status(401).json({ message: "Account has been locked" });
+    }
+   
+    
 
     // var result = await Auth.create(auth);
     // console.log("Author: " + result);
