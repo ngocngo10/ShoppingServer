@@ -72,6 +72,19 @@ route.get('/api/orders/:id', [middlewares.verifyToken], async function (req, res
 
 });
 
+// Get logged in user orders
+route.get('/api/myorders', [middlewares.verifyToken], async function (req, res, next) {
+  try {
+    const orders = await Order.find({ user: req.user._id }).exec();
+    console.log(orders);
+    return res.json(orders);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+});
+
 // Accept order
 route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.checkIsAdmin], async function (req, res, next) {
   try {
@@ -87,9 +100,9 @@ route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.chec
     await order.save();
 
     var orderId = order._id;
-    var totalPrice = order.orderItems.reduce(function (previous, current ){
+    var totalPrice = order.orderItems.reduce(function (previous, current) {
       return previous + current.qty * current.price;
-    },0);
+    }, 0);
     var quantity = order.orderItems.length;
     var shippingPrice = order.shippingPrice;
     var taxPrice = order.taxPrice;
@@ -99,7 +112,7 @@ route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.chec
     var postalCode = order.shippingAddress.postalCode;
     var country = order.shippingAddress.country;
     var date = new Date();
-    var estimatedDate = new Date(date.getTime() + 3*24*60*60*1000);
+    var estimatedDate = new Date(date.getTime() + 3 * 24 * 60 * 60 * 1000);
 
     var transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -111,7 +124,7 @@ route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.chec
 
     var mailOptions = {
       from: 'heocute10899@gmail.com',
-      to: 'ngothingocbk99@gmail.com',
+      to: req.user.email,
       subject: 'Sending Email using Node.js',
       html: fs.readFileSync(path.join(__dirname, '../view/mail_accept_order.html'), 'utf-8')
         .replace('{orderId}', orderId)
@@ -139,7 +152,29 @@ route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.chec
 
 })
 
+//   Admin Update order to delivered & paid
+route.patch('/api/orders/:id/deliver_paid', [middlewares.verifyToken, middlewares.checkIsAdmin], async function (req, res, next) {
+  try {
+    const order = await Order.findById(req.params.id);
+    order.isDelivered = req.body.isDelivered;
 
+    if(req.body.isDelivered){
+      order.deliveredAt = Date.now();
+    }
+   
+    if(req.body.isPaid){
+      order.paidAt = Date.now();
+    }
+
+    const updatedOrder = await order.save();
+
+    return res.json(updatedOrder);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+});
 
 
 

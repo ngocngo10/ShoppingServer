@@ -13,6 +13,7 @@ const orderRouter = require('./api/controllers/order.controller');
 
 var indexRouter = require('./api/controllers/index');
 var usersRouter = require('./api/controllers/users');
+var statisticRouter = require('./api/controllers/statistic.controller');
 
 var app = express();
 var corsOptions = {
@@ -48,6 +49,7 @@ app.use('/', productRouter);
 app.use('/', cartRouter);
 app.use('/', userRouter);
 app.use('/', orderRouter);
+app.use('/', statisticRouter);
 app.get('/api/config/paypal', (req, res) =>
   res.send(process.env.PAYPAL_CLIENT_ID)
 )

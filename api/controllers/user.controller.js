@@ -4,9 +4,10 @@ const User = require('../models/user.model');
 const middlewares = require('../middlewares/auth.middleware');
 const bcrypt = require('bcryptjs/dist/bcrypt');
 const { generateToken } = require('../utils/generateToken');
+const Order = require('../models/order.model');
 
 //Quản lí tài khoản người dùng(Khóa, mở khóa)
-route.patch('/api/admin/users/:id', [middlewares.checkIsAdmin], async function (req, res, next) {
+route.patch('/api/admin/users/:id', [middlewares.verifyToken,middlewares.checkIsAdmin], async function (req, res, next) {
   if (typeof req.body == 'undefined' || req.params.id === null) {
     return res.json({
       status: "Error",
@@ -49,7 +50,7 @@ route.get('/api/admin/users', [middlewares.verifyToken, middlewares.checkIsAdmin
 })
 
 //Admin get User by Id *
-route.get('/api/admin/users/:id', [middlewares.verifyToken, middlewares.checkIsAdmin], async function (req, res, next) {
+route.get('/api/admin/users/:id', [middlewares.verifyToken], async function (req, res, next) {
   try {
     var user = await User.findById(req.params.id).select(['-password']);
     console.log('Admin get User by Id ' + user);
@@ -87,8 +88,11 @@ route.put('/api/admin/users/:id', [middlewares.verifyToken, middlewares.checkIsA
 //Admin Delete User by Id *
 route.delete('/api/admin/users/:id', [middlewares.verifyToken, middlewares.checkIsAdmin], async function (req, res, next) {
   try {
-    const user = await User.findById(req.params.id);
+    const id = req.params.id;
+    const user = await User.findById(id);
+    const order = await Order.findOne({user: id});
     await user.remove();
+    await order.remove();
     return res.json({
       message: 'User removed'
     })
