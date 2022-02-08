@@ -118,7 +118,7 @@ route.delete('/api/admin/users/:id', [middlewares.verifyToken, middlewares.check
 })
 //getUserProfile *
 route.get('/api/users/profile', [middlewares.verifyToken], async function (req, res, next) {
-  try {
+  try { 
     const user = await User.findById(req.user._id).select(['-password', '-isLock']);
     console.log('getUserProfile ' + user);
     return res.json(user);
