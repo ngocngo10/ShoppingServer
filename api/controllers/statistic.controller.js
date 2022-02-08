@@ -16,7 +16,7 @@ route.post('/api/statistics', [middlewares.verifyToken, middlewares.checkIsAdmin
     const start = startTime ? moment(startTime) : moment();
     const end = endTime ? moment(endTime) : moment()
     const orders = await Order.find({
-      // isPaid: true,
+      isPaid: true,
       createdAt: {
         $gt: start, $lt: end
       }
