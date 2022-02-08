@@ -6,40 +6,46 @@ const bcrypt = require('bcryptjs/dist/bcrypt');
 const { generateToken } = require('../utils/generateToken');
 const Order = require('../models/order.model');
 const { findById } = require('../models/order.model');
+const { use } = require('./statistic.controller');
 
 //Quản lí tài khoản người dùng(Khóa, mở khóa)
 route.patch('/api/admin/users/:id', [middlewares.verifyToken, middlewares.checkIsAdmin], async function (req, res, next) {
   if (typeof req.body == 'undefined' || req.params.id === null) {
     return res.json({
       status: "Error",
-      message: "Something went wrong! check your sent data"
+      success: false,
+      message: "Something went wrong! check your sent data",
+      
     });
   }
 
   try {
-    var result = await User.updateOne({
-      _id: req.params.id
-    },
-      {
-        isLock: req.body.isLock
-      },
-    );
-
     const user = await User.findById(req.params.id);
-    console.log('User have been locked' + result);
+
+    user.isLock = req.body.isLock;
+
+    await user.save();
+
+    
     if (req.body.isLock) {
       return res.json({
-        message: "User have been locked",
-        user: user,
+        success: true,
+        user
       });
     }
     return res.json({
-      message: "User have been unlocked",
-      user: user,
+      success: true,
+      user
     });
   } catch (error) {
+
     console.log(error);
-    next(error);
+    return res.json({
+      status: "Error",
+      success: false,
+      message: "Not found",
+      
+    });
   }
 })
 
