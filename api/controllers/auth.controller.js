@@ -5,7 +5,7 @@ const Cart = require('../models/cart.model');
 const route = express.Router();
 const middlewares = require('../middlewares/auth.middleware');
 const jwt = require("jsonwebtoken");
-const Auth = require('../models/auth.model');
+// const Auth = require('../models/auth.model');
 const { generateToken } = require('../utils/generateToken');
 require('dotenv').config();
 // ma hoa mat khau
