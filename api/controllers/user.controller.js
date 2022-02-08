@@ -5,9 +5,10 @@ const middlewares = require('../middlewares/auth.middleware');
 const bcrypt = require('bcryptjs/dist/bcrypt');
 const { generateToken } = require('../utils/generateToken');
 const Order = require('../models/order.model');
+const { findById } = require('../models/order.model');
 
 //Quản lí tài khoản người dùng(Khóa, mở khóa)
-route.patch('/api/admin/users/:id', [middlewares.verifyToken,middlewares.checkIsAdmin], async function (req, res, next) {
+route.patch('/api/admin/users/:id', [middlewares.verifyToken, middlewares.checkIsAdmin], async function (req, res, next) {
   if (typeof req.body == 'undefined' || req.params.id === null) {
     return res.json({
       status: "Error",
@@ -22,12 +23,20 @@ route.patch('/api/admin/users/:id', [middlewares.verifyToken,middlewares.checkIs
       {
         isLock: req.body.isLock
       },
-    )
+    );
+
+    const user = await User.findById(req.params.id);
     console.log('User have been locked' + result);
-    if (req.body.isAdmin) {
-      return res.json({ message: "User have been locked" });
+    if (req.body.isLock) {
+      return res.json({
+        message: "User have been locked",
+        user: user,
+      });
     }
-    return res.json({ message: "User have been unlocked" });
+    return res.json({
+      message: "User have been unlocked",
+      user: user,
+    });
   } catch (error) {
     console.log(error);
     next(error);
@@ -90,7 +99,7 @@ route.delete('/api/admin/users/:id', [middlewares.verifyToken, middlewares.check
   try {
     const id = req.params.id;
     const user = await User.findById(id);
-    const order = await Order.findOne({user: id});
+    const order = await Order.findOne({ user: id });
     await user.remove();
     await order.remove();
     return res.json({

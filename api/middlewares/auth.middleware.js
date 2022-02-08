@@ -1,7 +1,7 @@
 const User = require('../models/user.model');
 var jwt = require('jsonwebtoken');
-const Auth = require('../models/auth.model');
-const { findOne } = require('../models/auth.model');
+// const Auth = require('../models/auth.model');
+// const { findOne } = require('../models/auth.model');
 const e = require('express');
 
 async function checkUserExist(req, res, next) {
