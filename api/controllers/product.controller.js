@@ -9,18 +9,18 @@ route.get('/api/products', async function (req, res, next) {
   const sort = req.query.sort == "desc" ? -1 : 1;
   const pageSize = 8;
   const page = Number(req.query.pageNumber) || 1;
-  // const keyword = req.query.keyword
-  //   ? {
-  //       name: {
-  //         $regex: req.query.keyword,
-  //         $options: 'i',
-  //       },
-  //     }
-  //   : {}
+  const keyword = req.query.keyword
+    ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: 'i',
+        },
+      }
+    : {}
 
   try {
-    const count = await Product.countDocuments({});
-    const products = await Product.find({}).limit(pageSize).sort({ price: sort }).skip(pageSize * (page - 1));
+    const count = await Product.countDocuments({...keyword});
+    const products = await Product.find({...keyword}).limit(pageSize).sort({ price: sort }).skip(pageSize * (page - 1));
     console.log('getAllProducts: ' + products);
     return res.json({ products, page, pages: Math.ceil(count / pageSize) });
   } catch (error) {
