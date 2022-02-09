@@ -1,6 +1,8 @@
 const express = require('express');
 const route = express.Router();
 const Order = require('../models/order.model');
+const User = require('../models/user.model');
+const Product = require('../models/product.model');
 const middlewares = require('../middlewares/auth.middleware');
 var nodemailer = require('nodemailer');
 const fs = require('fs');
@@ -35,6 +37,7 @@ route.post('/api/orders', middlewares.verifyToken, async function (req, res, nex
       })
 
       const createdOrder = await order.save();
+
 
       return res.status(201).json(createdOrder);
     }
@@ -94,6 +97,14 @@ route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.chec
     if (!order) {
       console.log(error);
       return res.status(404).json({ message: 'Order not found' });
+    };
+
+    for (i = 0; i < order.orderItems.length; i++){
+      var proId = order.orderItems[i].product;
+      const product = await Product.findById(proId);
+      console.log('id', proId);
+      product.countInStock = product.countInStock - order.orderItems[i].qty;
+      await product.save();
     }
 
     order.isAccept = isAccept;
@@ -121,10 +132,13 @@ route.patch('/api/orders/accept/:id', [middlewares.verifyToken, middlewares.chec
         pass: 'ngocquyettam'
       }
     });
+    
+     const user = await User.findOne({_id: order.user});
+    console.log(order);
 
     var mailOptions = {
       from: 'heocute10899@gmail.com',
-      to: req.user.email,
+      to: user.email,
       subject: 'Sending Email using Node.js',
       html: fs.readFileSync(path.join(__dirname, '../view/mail_accept_order.html'), 'utf-8')
         .replace('{orderId}', orderId)
