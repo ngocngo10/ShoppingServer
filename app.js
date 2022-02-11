@@ -11,8 +11,6 @@ const cartRouter = require('./api/controllers/cart.controller');
 const userRouter = require('./api/controllers/user.controller');
 const orderRouter = require('./api/controllers/order.controller');
 
-var indexRouter = require('./api/controllers/index');
-var usersRouter = require('./api/controllers/users');
 var statisticRouter = require('./api/controllers/statistic.controller');
 
 var app = express();
@@ -38,15 +36,12 @@ db.once('open', function () {
 });
 
 app.use(cors(corsOptions));
-app.use('/', indexRouter);
-app.use('/', usersRouter);
 
 app.get('/health_check', (req, res) => {
   res.send('ok');
 })
 app.use('/', authRouter);
 app.use('/', productRouter);
-app.use('/', cartRouter);
 app.use('/', userRouter);
 app.use('/', orderRouter);
 app.use('/', statisticRouter);
